@@ -2,8 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
-import { initDatabase, dbAPI } from './database';
-import { downloadManager } from './downloadManager';
+import { initDatabase, dbAPI } from './database.js';
+import { downloadManager } from './downloadManager.js';
 
 const app = express();
 const PORT = 5173;

@@ -12,16 +12,23 @@ import Settings from './pages/Settings';
 function App() {
   return (
     <HashRouter>
-      <div className="flex h-screen w-screen overflow-hidden bg-background text-text">
+      <div className="flex h-screen w-screen overflow-hidden bg-background text-text selection:bg-primary/30 relative">
+        {/* Cinematic Ambient Background Mesh */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[150px] pointer-events-none opacity-50mix-blend-screen"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-accent/20 rounded-full blur-[150px] pointer-events-none opacity-50 mix-blend-screen"></div>
+        <div className="absolute top-[40%] left-[50%] w-[30%] h-[30%] bg-blue-500/10 rounded-full blur-[120px] pointer-events-none opacity-40 mix-blend-screen"></div>
+        
+        {/* Grain Overlay */}
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay" style={{ backgroundImage: 'url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Dissolve_Noise_Texture.png")' }}></div>
+
+        {/* Sidebar */}
         <Sidebar />
-        <div className="flex-1 flex flex-col h-full relative">
-          {/* Ambient background glow */}
-          <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
-          <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[120px] pointer-events-none"></div>
-          
+        
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col h-full relative z-10 overflow-hidden">
           <Topbar />
           
-          <main className="flex-1 overflow-y-auto p-8 z-10 relative">
+          <main className="flex-1 overflow-y-auto px-8 pb-12 z-10 relative hide-scrollbar scroll-smooth">
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/discovery" element={<Search />} />

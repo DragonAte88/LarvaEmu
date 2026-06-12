@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs';
 // @ts-ignore
 import m3u8ToMp4 from 'm3u8-to-mp4';
-import { dbAPI } from './database';
+import { dbAPI } from './database.js';
 
 export interface DownloadJob {
   id: string;
