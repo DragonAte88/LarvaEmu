@@ -5,6 +5,8 @@ import fs from 'fs';
 import { initDatabase, dbAPI } from './database.js';
 import { downloadManager } from './downloadManager.js';
 import { searchWCO } from './scrapers/wcotv.js';
+import { extractStream } from './extractors/index.js';
+import { fetchSubtitles } from './subtitles.js';
 
 const app = express();
 const PORT = 5173;
@@ -95,6 +97,51 @@ app.post('/api/downloads', (req, res) => {
   const { title, url, quality } = req.body;
   downloadManager.addJob(title, url, quality);
   res.json({ success: true });
+});
+
+// ==========================================
+// Raw Stream Extractor API Route
+// ==========================================
+
+app.post('/api/extract', async (req, res) => {
+  const { url, providerId } = req.body;
+  if (!url) {
+    return res.status(400).json({ error: 'URL is required' });
+  }
+
+  try {
+    const streamInfo = await extractStream(url, providerId);
+    if (streamInfo) {
+      res.json(streamInfo);
+    } else {
+      res.status(404).json({ error: 'Stream not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Extraction failed' });
+  }
+});
+
+// ==========================================
+// OpenSubtitles API Route
+// ==========================================
+
+app.get('/api/subtitles', async (req, res) => {
+  const { tmdbId, type, season, episode } = req.query;
+  if (!tmdbId || !type) {
+    return res.status(400).json({ error: 'tmdbId and type are required' });
+  }
+
+  try {
+    const subs = await fetchSubtitles(
+      tmdbId as string, 
+      type as 'movie' | 'tv', 
+      season ? parseInt(season as string) : undefined, 
+      episode ? parseInt(episode as string) : undefined
+    );
+    res.json(subs);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch subtitles' });
+  }
 });
 
 // ==========================================
