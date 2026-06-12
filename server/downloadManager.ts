@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-// @ts-ignore
-import m3u8ToMp4 from 'm3u8-to-mp4';
+import { spawn } from 'child_process';
+import ffmpegStatic from 'ffmpeg-static';
 import { dbAPI } from './database.js';
 
 export interface DownloadJob {
@@ -26,7 +26,6 @@ export class DownloadManager {
   private maxConcurrent: number = 2;
 
   constructor() {
-    // In a real app, load pending jobs from SQLite
     console.log('[DownloadManager] Initialized. Save dir:', downloadsDir);
   }
 
@@ -55,29 +54,72 @@ export class DownloadManager {
     this.broadcastQueue();
 
     try {
-      const converter = new m3u8ToMp4();
-      const outputPath = path.join(downloadsDir, `${nextJob.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4`);
-      
-      // M3U8 to MP4 conversion takes time. 
-      // In a real implementation we would hook into ffmpeg progress events.
-      // For MVP, we simulate progress.
-      
-      let progress = 0;
-      const interval = setInterval(() => {
-        progress += 10;
-        nextJob.progress = progress;
-        this.broadcastQueue();
-        if (progress >= 100) clearInterval(interval);
-      }, 1000);
+      if (!ffmpegStatic) {
+        throw new Error('FFmpeg static binary not found.');
+      }
 
-      // We bypass actual download to prevent hanging the system in MVP phase
-      // await converter.setInputFile(nextJob.url).setOutputFile(outputPath).start();
-      
-      await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate 10s download
+      const outputPath = path.join(downloadsDir, `${nextJob.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.mp4`);
+
+      await new Promise<void>((resolve, reject) => {
+        // Native FFmpeg download and conversion from m3u8
+        const ffmpegCmd = ffmpegStatic as string;
+        const ffmpeg = spawn(ffmpegCmd, [
+          '-i', nextJob.url,
+          '-c', 'copy',
+          '-bsf:a', 'aac_adtstoasc',
+          '-y',
+          outputPath
+        ]);
+
+        let totalDurationSec = 0;
+
+        ffmpeg.stderr.on('data', (data: Buffer) => {
+          const output = data.toString();
+          
+          // Parse total duration from FFmpeg output
+          // Duration: 00:24:15.12
+          if (!totalDurationSec) {
+            const durationMatch = output.match(/Duration: (\d{2}):(\d{2}):(\d{2})\.\d{2}/);
+            if (durationMatch) {
+              totalDurationSec = 
+                parseInt(durationMatch[1]) * 3600 +
+                parseInt(durationMatch[2]) * 60 +
+                parseInt(durationMatch[3]);
+            }
+          }
+
+          // Parse current time to calculate progress
+          // time=00:05:12.45
+          const timeMatch = output.match(/time=(\d{2}):(\d{2}):(\d{2})\.\d{2}/);
+          if (timeMatch && totalDurationSec > 0) {
+            const currentSec = 
+              parseInt(timeMatch[1]) * 3600 +
+              parseInt(timeMatch[2]) * 60 +
+              parseInt(timeMatch[3]);
+            
+            const progress = Math.min(100, Math.round((currentSec / totalDurationSec) * 100));
+            if (progress > nextJob.progress) {
+              nextJob.progress = progress;
+              this.broadcastQueue();
+            }
+          }
+        });
+
+        ffmpeg.on('close', (code: number | null) => {
+          if (code === 0) {
+            resolve();
+          } else {
+            reject(new Error(`FFmpeg exited with code ${code}`));
+          }
+        });
+        
+        ffmpeg.on('error', (err: Error) => {
+          reject(err);
+        });
+      });
 
       nextJob.status = 'completed';
       nextJob.progress = 100;
-      
     } catch (err) {
       console.error('[DownloadManager] Failed to download:', err);
       nextJob.status = 'error';
@@ -89,7 +131,7 @@ export class DownloadManager {
   }
 
   private broadcastQueue() {
-    // In a web app, we could use WebSockets. For now, the React client will poll /api/downloads.
+    // Polled by React frontend
   }
 
   getQueue() {

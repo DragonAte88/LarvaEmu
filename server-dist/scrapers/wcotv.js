@@ -1,20 +1,30 @@
-import axios from 'axios';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import * as cheerio from 'cheerio';
+puppeteer.use(StealthPlugin());
 const WCO_URL = 'https://www.wcostream.tv';
 export async function searchWCO(query) {
+    console.log(`[WCO Scraper] Searching for: ${query} using Headless Browser`);
+    let browser;
     try {
-        console.log(`[WCO Scraper] Searching for: ${query}`);
-        const formData = new URLSearchParams();
-        formData.append('catara', query);
-        formData.append('konuara', 'series');
-        const res = await axios.post(`${WCO_URL}/search`, formData.toString(), {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            },
-            timeout: 10000
+        // Launch stealth browser
+        browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox']
         });
-        const $ = cheerio.load(res.data);
+        const page = await browser.newPage();
+        // Cloudflare challenges take time, wait until network is mostly idle
+        await page.goto(`${WCO_URL}/search`, { waitUntil: 'networkidle2', timeout: 30000 });
+        // Submit the form
+        await page.type('input[name="catara"]', query);
+        // We must find the search form and submit it, or click the search button
+        await Promise.all([
+            page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 }),
+            page.keyboard.press('Enter'),
+        ]);
+        // Get the HTML after navigation
+        const html = await page.content();
+        const $ = cheerio.load(html);
         const results = [];
         $('.cerceve').each((i, el) => {
             const aTag = $(el).find('a').first();
@@ -32,27 +42,16 @@ export async function searchWCO(query) {
                 });
             }
         });
-        console.log(`[WCO Scraper] Found ${results.length} results.`);
+        console.log(`[WCO Scraper] Successfully bypassed Cloudflare! Found ${results.length} real results.`);
         return results;
     }
     catch (error) {
-        console.error('[WCO Scraper] Error during search:', error);
-        // Fallback Mock Results if blocked by Cloudflare locally
-        return [
-            {
-                id: 'wco-mock-1',
-                title: `${query} (Subbed) - Mock Fallback`,
-                type: 'anime',
-                poster: 'https://via.placeholder.com/300x450/0a0a0f/00ffcc?text=Anime+Poster',
-                provider: 'WCO Mock'
-            },
-            {
-                id: 'wco-mock-2',
-                title: `${query} The Movie (Dubbed) - Mock Fallback`,
-                type: 'anime',
-                poster: 'https://via.placeholder.com/300x450/0a0a0f/a855f7?text=Movie+Poster',
-                provider: 'WCO Mock'
-            }
-        ];
+        console.error('[WCO Scraper] Puppeteer execution error:', error);
+        return [];
+    }
+    finally {
+        if (browser) {
+            await browser.close();
+        }
     }
 }
