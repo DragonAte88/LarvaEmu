@@ -8,6 +8,7 @@ import Search from './pages/Search';
 import Details from './pages/Details';
 import Downloads from './pages/Downloads';
 import Settings from './pages/Settings';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
               <Route path="/details" element={<Details />} />
               <Route path="/downloads" element={<Downloads />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

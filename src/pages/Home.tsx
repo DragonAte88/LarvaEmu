@@ -52,13 +52,13 @@ const Home = () => {
               <button 
                 className="flex items-center gap-2 px-8 py-4 bg-white text-black rounded-full font-bold hover:bg-white/90 transition-all hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(255,255,255,0.4)]"
                 onClick={() => {
-                  api.updateHistory({
-                    title: 'Interstellar',
-                    url: 'Neon',
-                    quality: '1080p',
-                    time: 1200000,
-                    duration: 10140000
-                  });
+                  api.addHistory(
+                    'Interstellar',
+                    'Neon',
+                    '1080p',
+                    1200000,
+                    10140000
+                  );
                   alert('Mock history added! Refresh page to see Continue Watching.');
                 }}
               >

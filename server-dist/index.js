@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs';
 import { initDatabase, dbAPI } from './database.js';
 import { downloadManager } from './downloadManager.js';
+import { searchWCO } from './scrapers/wcotv.js';
 const app = express();
 const PORT = 5173;
 app.use(cors());
@@ -12,6 +13,19 @@ app.use(express.json());
 app.use(express.static(path.join(process.cwd(), 'dist')));
 // Initialize SQLite database
 initDatabase();
+// ==========================================
+// Global Search API Route
+// ==========================================
+app.get('/api/search', async (req, res) => {
+    const query = req.query.q;
+    if (!query) {
+        return res.json([]);
+    }
+    // Here we can aggregate multiple scrapers if needed.
+    // For now, we search WCO
+    const results = await searchWCO(query);
+    res.json(results);
+});
 // ==========================================
 // Database API Routes
 // ==========================================

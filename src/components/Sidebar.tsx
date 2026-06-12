@@ -61,16 +61,16 @@ const Sidebar = () => {
       </nav>
 
       <div className="mt-auto pt-6 border-t border-white/10">
-        <div className="flex items-center gap-3 px-2 py-2 hover:bg-white/5 rounded-2xl cursor-pointer transition-colors">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-accent/20 to-primary/20 border border-white/20 flex items-center justify-center relative overflow-hidden">
+        <NavLink to="/profile" className={({ isActive }) => `flex items-center gap-3 px-2 py-2 rounded-2xl cursor-pointer transition-colors ${isActive ? 'bg-white/10' : 'hover:bg-white/5'}`}>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-accent/20 to-primary/20 border border-white/20 flex items-center justify-center relative overflow-hidden shrink-0">
              <div className="absolute inset-0 bg-white/5 backdrop-blur-md"></div>
              <span className="relative z-10 font-bold text-white">U</span>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-white tracking-wide">User Profile</span>
+          <div className="flex flex-col overflow-hidden">
+            <span className="text-sm font-bold text-white tracking-wide truncate">User Profile</span>
             <span className="text-xs text-primary font-medium">Pro Member</span>
           </div>
-        </div>
+        </NavLink>
       </div>
     </div>
   );

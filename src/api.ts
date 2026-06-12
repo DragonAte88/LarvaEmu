@@ -41,4 +41,10 @@ export const api = {
   addDownload: async (title: string, url: string, quality: string) => {
     await axios.post(`${API_BASE}/downloads`, { title, url, quality });
   },
+
+  // Global Search
+  search: async (query: string) => {
+    const res = await axios.get(`${API_BASE}/search`, { params: { q: query } });
+    return res.data;
+  }
 };

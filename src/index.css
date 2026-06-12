@@ -28,7 +28,7 @@
 }
 
 @utility text-glow {
-  text-shadow: 0 0 20px theme('colors.primary' / 50%);
+  text-shadow: 0 0 20px var(--color-primary);
 }
 
 @utility hide-scrollbar {
