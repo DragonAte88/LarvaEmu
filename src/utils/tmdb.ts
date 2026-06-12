@@ -50,3 +50,8 @@ export const getPopular = async (type: 'movie' | 'tv' = 'movie'): Promise<TMDBMo
 export const getDetails = async (id: number | string, type: 'movie' | 'tv' = 'movie') => {
   return await fetchTMDB(`/${type}/${id}?append_to_response=credits,videos`);
 };
+
+export const searchMulti = async (query: string) => {
+  const data = await fetchTMDB(`/search/multi?query=${encodeURIComponent(query)}`);
+  return data.results.filter((item: any) => item.media_type === 'movie' || item.media_type === 'tv');
+};
