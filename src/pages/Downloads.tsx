@@ -25,7 +25,7 @@ const Downloads = () => {
     const interval = setInterval(fetchQueue, 1000);
 
     // Fetch local library
-    axios.get('http://localhost:34567/library').then(res => setLibrary(res.data)).catch(console.error);
+    axios.get('http://localhost:5173/library').then(res => setLibrary(res.data)).catch(console.error);
 
     return () => clearInterval(interval);
   }, []);

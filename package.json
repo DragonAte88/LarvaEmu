@@ -8,7 +8,9 @@
   "scripts": {
     "dev": "concurrently \"npm run server\" \"vite\"",
     "server": "nodemon --watch server --ext ts --exec ts-node server/index.ts",
-    "build": "tsc -b && vite build",
+    "build:client": "tsc -b && vite build",
+    "build:server": "tsc server/index.ts --outDir server-dist --esModuleInterop --skipLibCheck --ignoreConfig",
+    "build": "npm run build:client && npm run build:server",
     "lint": "eslint .",
     "preview": "vite preview"
   },

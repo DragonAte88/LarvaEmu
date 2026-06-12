@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Play, Plus, Check, ArrowLeft, Star, Clock, Download } from 'lucide-react';
+import { Play, Plus, Check, ArrowLeft, Star, Clock, Download, ThumbsUp } from 'lucide-react';
 import { motion } from 'framer-motion';
 import VideoPlayer from '../components/VideoPlayer';
 import { api } from '../api';
@@ -48,7 +48,7 @@ const Details = () => {
       {/* Hero Backdrop -> Now Video Player Area */}
       <div className="w-full mb-12 shadow-2xl relative z-20">
         {isPlaying ? (
-           <VideoPlayer src={media.videoUrl} />
+           <VideoPlayer />
         ) : (
           <div className="relative aspect-video w-full flex items-center justify-center overflow-hidden">
             <img src={media.backdrop} className="absolute inset-0 w-full h-full object-cover" alt="backdrop" />

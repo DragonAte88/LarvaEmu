@@ -6,10 +6,13 @@ import { initDatabase, dbAPI } from './database';
 import { downloadManager } from './downloadManager';
 
 const app = express();
-const PORT = 34567; // Reuse the media server port
+const PORT = 5173;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve React Frontend
+app.use(express.static(path.join(process.cwd(), 'dist')));
 
 // Initialize SQLite database
 initDatabase();
@@ -23,7 +26,16 @@ app.get('/api/history', (req, res) => {
 
 app.post('/api/history', (req, res) => {
   const { title, url, quality, time, duration } = req.body;
-  dbAPI.addHistory(title, url, quality, time, duration);
+  dbAPI.updateHistory({
+    id: title,
+    title,
+    type: 'video',
+    season: null,
+    episode: null,
+    progress_ms: time,
+    total_ms: duration,
+    provider: url
+  });
   res.json({ success: true });
 });
 
@@ -34,7 +46,12 @@ app.get('/api/watchlist', (req, res) => {
 app.post('/api/watchlist', (req, res) => {
   const { title, poster, action } = req.body;
   if (action === 'add') {
-    dbAPI.addToWatchlist(title, poster);
+    dbAPI.addToWatchlist({
+      id: title,
+      title,
+      type: 'video',
+      poster_path: poster
+    });
   } else if (action === 'remove') {
     dbAPI.removeFromWatchlist(title);
   }
@@ -60,7 +77,7 @@ app.get('/api/downloads', (req, res) => {
 
 app.post('/api/downloads', (req, res) => {
   const { title, url, quality } = req.body;
-  downloadManager.addDownload(title, url, quality);
+  downloadManager.addJob(title, url, quality);
   res.json({ success: true });
 });
 
