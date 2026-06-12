@@ -15,17 +15,8 @@ export const WcoTvProvider: ProviderPlugin = {
     
     // In a real implementation, we would scrape the wco.tv search endpoints
     // and extract the HTML5 video player source URL.
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            providerName: 'Wco.tv (Anime HQ)',
-            streamUrl: 'https://mock.wco.tv/streams/anime-episode-1.mp4',
-            quality: '1080p',
-            subtitles: [] // Hardsubbed usually
-          }
-        ]);
-      }, 1200);
-    });
+    // WCO requires passing Cloudflare to extract the real m3u8 stream.
+    // For now, since we removed mocks, this returns empty until a backend WCO stream extractor is built.
+    return [];
   }
 };

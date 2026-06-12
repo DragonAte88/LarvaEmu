@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import engine from '../engine';
 import { StreamResponse } from '../engine/ProviderEngine';
 
-const VideoPlayer = () => {
+const VideoPlayer = ({ tmdbId, type }: { tmdbId: number | string, type: 'movie' | 'tv' }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [stream, setStream] = useState<StreamResponse | null>(null);
@@ -14,17 +14,20 @@ const VideoPlayer = () => {
     const fetchStream = async () => {
       setIsLoading(true);
       const streams = await engine.resolveAll({
-        title: 'The Matrix',
-        type: 'movie',
-        year: '1999'
+        tmdbId: tmdbId.toString(),
+        type: type,
+        title: 'Auto', // We rely on ID now
+        year: ''
       });
       if (streams.length > 0) {
         setStream(streams[0]); // Best Ranked
       }
       setIsLoading(false);
     };
-    fetchStream();
-  }, []);
+    if (tmdbId) {
+      fetchStream();
+    }
+  }, [tmdbId, type]);
 
   return (
     <div 
@@ -32,15 +35,24 @@ const VideoPlayer = () => {
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      {/* Mock Video Element */}
-      <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-2xl tracking-widest">
+      {/* Live Video Element / Iframe */}
+      <div className="absolute inset-0 flex items-center justify-center text-white/50 font-bold text-2xl tracking-widest bg-black">
         {isLoading ? (
           <div className="flex flex-col items-center gap-4">
              <Loader2 size={48} className="animate-spin text-primary" />
-             <span>Scraping Sources...</span>
+             <span>Resolving Live Sources...</span>
           </div>
         ) : stream ? (
-          `Playing: ${stream.streamUrl}`
+          stream.streamUrl.includes('embed') ? (
+            <iframe 
+              src={stream.streamUrl} 
+              allowFullScreen 
+              className="w-full h-full border-none"
+              title="Video Player"
+            />
+          ) : (
+            `Playing Raw Stream: ${stream.streamUrl}`
+          )
         ) : (
           'No Streams Found'
         )}

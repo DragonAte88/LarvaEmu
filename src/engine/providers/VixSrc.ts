@@ -9,27 +9,32 @@ export const VixSrcProvider: ProviderPlugin = {
   baseUrl: 'https://vixsrc.net', // Example domain
   
   async resolveStream(request: MediaRequest): Promise<StreamResponse[]> {
-    console.log(`[VixSrc] Searching for ${request.title}`);
+    console.log(`[VixSrc] Searching for TMDB ID: ${request.tmdbId}`);
     
-    // In a real implementation, we would construct the API route based on TMDB ID
-    // const url = request.type === 'movie' 
-    //   ? `${this.baseUrl}/api/movie/${request.tmdbId}`
-    //   : `${this.baseUrl}/api/tv/${request.tmdbId}/${request.season}/${request.episode}`;
-      
-    // Mocking the axios response for the architecture setup
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            providerName: 'VixSrc (Vidrock)',
-            streamUrl: 'https://mock.vixsrc.net/hls/master.m3u8',
-            quality: '1080p',
-            subtitles: [
-              { language: 'English', url: 'https://mock.vixsrc.net/subs/en.vtt' }
-            ]
-          }
-        ]);
-      }, 800);
-    });
+    if (!request.tmdbId) {
+      console.warn('[VixSrc] No TMDB ID provided, skipping.');
+      return [];
+    }
+
+    // Construct the real embed URL based on TMDB ID
+    let embedUrl = '';
+    if (request.type === 'movie') {
+      embedUrl = `${this.baseUrl}/embed/movie?tmdb=${request.tmdbId}`;
+    } else {
+      const s = request.season || 1;
+      const e = request.episode || 1;
+      embedUrl = `${this.baseUrl}/embed/tv?tmdb=${request.tmdbId}&season=${s}&episode=${e}`;
+    }
+
+    // Since Vidsrc uses an iframe embed and encrypts the direct .m3u8, 
+    // we return the embed URL for the player to render in a webview/iframe.
+    return [
+      {
+        providerName: 'VixSrc Live',
+        streamUrl: embedUrl,
+        quality: 'Auto',
+        subtitles: []
+      }
+    ];
   }
 };
