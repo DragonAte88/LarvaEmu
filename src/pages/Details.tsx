@@ -1,25 +1,77 @@
-import React from 'react';
-import { Play, Plus, ThumbsUp, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Play, Plus, Check, ArrowLeft, Star, Clock, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import VideoPlayer from '../components/VideoPlayer';
+import { api } from '../api';
 
 const Details = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const media = location.state?.media;
+  const [inWatchlist, setInWatchlist] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    if (media) {
+      api.getWatchlist().then((list: any[]) => {
+        setInWatchlist(list.some(item => item.title === media.title));
+      });
+    }
+  }, [media]);
+
+  const toggleWatchlist = async () => {
+    if (inWatchlist) {
+      await api.removeFromWatchlist(media.title);
+    } else {
+      await api.addToWatchlist(media.title, media.poster);
+    }
+    setInWatchlist(!inWatchlist);
+  };
+
+  const handleDownload = async () => {
+    await api.addDownload(media.title, 'mock_url_from_provider', '1080p');
+    alert(`Queued ${media.title} for offline download!`);
+  };
+
+  if (!media) return null;
+
   return (
     <div className="max-w-7xl mx-auto pb-20">
+      <button 
+        onClick={() => navigate(-1)}
+        className="fixed top-8 left-8 z-50 p-2 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all"
+      >
+        <ArrowLeft size={24} />
+      </button>
+
       {/* Hero Backdrop -> Now Video Player Area */}
       <div className="w-full mb-12 shadow-2xl relative z-20">
-        <VideoPlayer />
+        {isPlaying ? (
+           <VideoPlayer src={media.videoUrl} />
+        ) : (
+          <div className="relative aspect-video w-full flex items-center justify-center overflow-hidden">
+            <img src={media.backdrop} className="absolute inset-0 w-full h-full object-cover" alt="backdrop" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+            <button 
+                onClick={() => setIsPlaying(true)}
+                className="w-20 h-20 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform shadow-2xl"
+            >
+              <Play size={32} className="text-black ml-1" fill="black" />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Details Section */}
       <div className="flex gap-10 px-4 mb-12">
         {/* Poster */}
         <div className="w-64 aspect-[2/3] bg-surface/80 rounded-2xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] shrink-0 hidden md:block relative overflow-hidden">
-           <div className="absolute inset-0 flex items-center justify-center text-white/20 font-bold uppercase tracking-widest text-sm">GPU Poster</div>
+           <img src={media.poster} className="w-full h-full object-cover" alt="poster" />
         </div>
         
         <div className="flex-1 pb-4">
-          <h1 className="text-6xl font-black text-white mb-4 tracking-tight text-glow">The Matrix</h1>
+          <h1 className="text-6xl font-black text-white mb-4 tracking-tight text-glow">{media.title}</h1>
           
           <div className="flex items-center gap-4 text-sm font-medium text-white/80 mb-6">
             <span className="text-green-400 font-bold">98% Match</span>

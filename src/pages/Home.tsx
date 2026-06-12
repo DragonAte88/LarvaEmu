@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import ContinueWatching from '../components/ContinueWatching';
+import { api } from '../api';
 
 const Home = () => {
+  const [watchlistCount, setWatchlistCount] = useState(0);
+
+  useEffect(() => {
+    api.getWatchlist().then((list: any[]) => setWatchlistCount(list.length));
+  }, []);
+
   const sections = [
     { title: 'Trending Now', items: [1, 2, 3, 4, 5] },
     { title: 'New Releases', items: [6, 7, 8, 9, 10] },

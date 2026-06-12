@@ -1,11 +1,9 @@
 import Database from 'better-sqlite3';
 import path from 'path';
-import { app } from 'electron';
 import fs from 'fs';
 
-// Initialize Database in the user's appData directory
-const userDataPath = app.getPath('userData');
-const dbPath = path.join(userDataPath, 'media-universe.sqlite');
+// Store DB in the project root for self-hosting (or a specific data folder)
+const dbPath = path.join(process.cwd(), 'database.sqlite');
 
 let db: Database.Database;
 

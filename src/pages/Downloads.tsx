@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, CheckCircle, Trash2, Clock, Play } from 'lucide-react';
+import { Download, CheckCircle, Trash2, Play } from 'lucide-react';
 import axios from 'axios';
+import { api } from '../api';
 
 interface DownloadJob {
   id: string;
@@ -18,12 +19,15 @@ const Downloads = () => {
   const [activeTab, setActiveTab] = useState<'queue' | 'library'>('queue');
 
   useEffect(() => {
-    // Listen to IPC updates
-    window.electronAPI.getDownloadQueue().then(setQueue);
-    window.electronAPI.onDownloadQueueUpdated((q) => setQueue(q));
+    // Poll the Express API
+    const fetchQueue = () => api.getDownloadQueue().then(setQueue);
+    fetchQueue();
+    const interval = setInterval(fetchQueue, 1000);
 
-    // Fetch local library from the express server
+    // Fetch local library
     axios.get('http://localhost:34567/library').then(res => setLibrary(res.data)).catch(console.error);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (

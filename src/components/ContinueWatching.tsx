@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
+import { api } from '../api';
 
 interface HistoryItem {
   id: string;
@@ -19,7 +20,7 @@ const ContinueWatching = () => {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      const items = await window.electronAPI.getHistory();
+      const items = await api.getHistory();
       if (items) {
         setHistory(items);
       }

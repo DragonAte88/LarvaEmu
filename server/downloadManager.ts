@@ -1,4 +1,3 @@
-import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import m3u8ToMp4 from 'm3u8-to-mp4';
@@ -13,7 +12,8 @@ export interface DownloadJob {
   progress: number;
 }
 
-const downloadsDir = path.join(app.getPath('videos'), 'MediaUniverse');
+const userHomeDir = process.env.USERPROFILE || process.env.HOME || '';
+const downloadsDir = path.join(userHomeDir, 'Videos', 'MediaUniverse');
 
 if (!fs.existsSync(downloadsDir)) {
   fs.mkdirSync(downloadsDir, { recursive: true });
@@ -88,9 +88,7 @@ export class DownloadManager {
   }
 
   private broadcastQueue() {
-    BrowserWindow.getAllWindows().forEach(win => {
-      win.webContents.send('download-queue-updated', this.queue);
-    });
+    // In a web app, we could use WebSockets. For now, the React client will poll /api/downloads.
   }
 
   getQueue() {

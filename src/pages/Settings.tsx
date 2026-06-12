@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Key } from 'lucide-react';
+import { api } from '../api';
 
 const Settings = () => {
   const [tmdbKey, setTmdbKey] = useState('');
@@ -8,10 +9,10 @@ const Settings = () => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // Load settings from SQLite DB via IPC
+    // Load settings from backend API
     const loadSettings = async () => {
-      const tmdb = await window.electronAPI.getSetting('TMDB_API_KEY');
-      const os = await window.electronAPI.getSetting('OPENSUBTITLES_API_KEY');
+      const tmdb = await api.getSetting('TMDB_API_KEY');
+      const os = await api.getSetting('OPENSUBTITLES_API_KEY');
       if (tmdb) setTmdbKey(tmdb);
       if (os) setOpenSubtitlesKey(os);
     };
@@ -20,8 +21,8 @@ const Settings = () => {
 
   const handleSave = async () => {
     setIsSaving(true);
-    await window.electronAPI.setSetting('TMDB_API_KEY', tmdbKey);
-    await window.electronAPI.setSetting('OPENSUBTITLES_API_KEY', openSubtitlesKey);
+    await api.setSetting('TMDB_API_KEY', tmdbKey);
+    await api.setSetting('OPENSUBTITLES_API_KEY', openSubtitlesKey);
     setTimeout(() => setIsSaving(false), 500);
   };
 

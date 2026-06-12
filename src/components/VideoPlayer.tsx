@@ -20,7 +20,6 @@ const VideoPlayer = () => {
       });
       if (streams.length > 0) {
         setStream(streams[0]); // Best Ranked
-        window.electronAPI.setDiscordActivity(`Watching The Matrix`, `Source: ${streams[0].providerName}`);
       }
       setIsLoading(false);
     };
